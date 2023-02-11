@@ -1,6 +1,6 @@
 import { useFBO } from "@react-three/drei";
 import { useFrame, extend, createPortal } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 import SimulationMaterial from "./SimulationMaterial";
@@ -8,13 +8,36 @@ import SimulationMaterial from "./SimulationMaterial";
 import vertex from "./shaders/FBOPointsShaders/vertex";
 import fragment from "./shaders/FBOPointsShaders/fragment";
 
+import { useControls } from "leva";
+
 extend({ SimulationMaterial: SimulationMaterial });
 
 const FBOParticles = () => {
   const size = 128;
 
   const points = useRef();
-  const simulationMaterialRef = useRef();
+  const [simulationMaterial] = useState(() => new SimulationMaterial(size));
+
+  const controls = useControls({
+    frequency: {
+      value: 0.25,
+      min: 0.01,
+      max: 1,
+      step: 0.01,
+      onChange: (value) => {
+        simulationMaterial.uniforms.uFrequency.value = value;
+      },
+    },
+    pointSize: {
+      value: 3,
+      min: 0.5,
+      max: 4,
+      step: 0.01,
+      onChange: (value) => {
+        points.current.material.uniforms.uSize.value = value;
+      },
+    },
+  });
 
   const scene = new THREE.Scene();
   const camera = new THREE.OrthographicCamera(
@@ -54,6 +77,9 @@ const FBOParticles = () => {
       uPositions: {
         value: null,
       },
+      uSize: {
+        value: 3,
+      },
     }),
     []
   );
@@ -68,14 +94,13 @@ const FBOParticles = () => {
 
     points.current.material.uniforms.uPositions.value = renderTarget.texture;
 
-    simulationMaterialRef.current.uniforms.uTime.value = clock.elapsedTime;
+    simulationMaterial.uniforms.uTime.value = clock.elapsedTime;
   });
 
   return (
     <>
       {createPortal(
-        <mesh>
-          <simulationMaterial ref={simulationMaterialRef} args={[size]} />
+        <mesh material={simulationMaterial}>
           <bufferGeometry>
             <bufferAttribute
               attach="attributes-position"

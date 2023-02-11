@@ -5,6 +5,7 @@ const fragmentShader = `
 uniform sampler2D positions;
 uniform float uTime;
 uniform float uFrequency;
+uniform float uSpeed;
 
 varying vec2 vUv;
 

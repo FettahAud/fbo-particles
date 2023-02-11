@@ -1,6 +1,7 @@
 const vertex = `
 uniform sampler2D uPositions;
 uniform float uTime;
+uniform float uSize;
 
 void main() {
   vec3 pos = texture2D(uPositions, position.xy).xyz;
@@ -11,7 +12,7 @@ void main() {
 
   gl_Position = projectedPosition;
 
-  gl_PointSize = 3.0;
+  gl_PointSize = uSize;
   // Size attenuation;
   gl_PointSize *= step(1.0 - (1.0/64.0), position.x) + 0.5;
 }
